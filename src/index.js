@@ -13,6 +13,7 @@ app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
 // Routes
+//TODO: Create a search bar and call db_methods(tablename)
 data = db_methods("trump");
 app.get('/', function(req, res){
     res.render('index.ejs', {
@@ -22,8 +23,6 @@ app.get('/', function(req, res){
 
 // Static Files
 app.use(express.static(__dirname+"/public"));
-
-//db_methods("trump");
 
 // Start Server
 app.listen(8080, () => {
