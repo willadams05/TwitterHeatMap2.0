@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Nodejs Leaflet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="/css/main.css"/>
+</head>
+<body>
+
+    <div id="map-template"></div>
+
+    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
+    <script>
+
+        const map = L.map('map-template').setView([30.2672, -97.7431], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var rows = <%- JSON.stringify(rows) %>;
+        console.log(rows);
+
+        var length = rows.length;
+        for (var i = 0; i < length; i++){
+            id = rows[i][0];
+            text = rows[i][1];
+            date = rows[i][2];
+            long = rows[i][3];
+            lat = rows[i][4];
+            sent = rows[i][5];
+
+            
+            L.marker([lat, long]).addTo(map)
+                .bindPopup("Sentiment: " + sent);
+
+            console.log(long + " " + lat + " " + sent);
+        }
+    
+    </script>
+</body>
+</html>
