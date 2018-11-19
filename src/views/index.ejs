@@ -22,13 +22,13 @@
         }).addTo(map);
 
         var rows = <%- JSON.stringify(rows) %>;
-        console.log(rows);
        
         // Colors from red to green with worst sentiment at colors[0] and best at colors[length-1];
         var colors = ["#FF0000", "#FF3200", "#FF6400", "#FF9600", "#FFC800", "#FFFF00", "#C8FF00", 
                       "#96FF00", "#64FF00", "#32FF00", "#00FF00"];  
 
         var length = rows.length;
+        console.log(length);
         for (var i = 0; i < length; i++){
             text = rows[i][1];
             date = rows[i][2];
@@ -36,11 +36,12 @@
             lat = rows[i][4];
             sent = rows[i][5];
 
-            color_index = Math.floor(colors.length/2);
+            mid = Math.floor(colors.length/2);
+            color_index = mid;
             if(sent < 0)
-                color_index = colors.length + Math.ceil(sent * colors.length);
+                color_index = mid + Math.ceil(sent * mid);
             else if(sent > 0)
-                color_index = Math.floor(sent * colors.length);
+                color_index = mid + Math.floor(sent * mid);
             
             tweet_color = colors[color_index]; 
 
