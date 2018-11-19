@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
     <script>
 
-        const map = L.map('map-template').setView([30.2672, -97.7431], 13);
+        const map = L.map('map-template').setView([30.2672, -97.7431], 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -23,21 +23,37 @@
 
         var rows = <%- JSON.stringify(rows) %>;
         console.log(rows);
+       
+        // Colors from red to green with worst sentiment at colors[0] and best at colors[length-1];
+        var colors = ["#FF0000", "#FF3200", "#FF6400", "#FF9600", "#FFC800", "#FFFF00", "#C8FF00", 
+                      "#96FF00", "#64FF00", "#32FF00", "#00FF00"];  
 
         var length = rows.length;
         for (var i = 0; i < length; i++){
-            id = rows[i][0];
             text = rows[i][1];
             date = rows[i][2];
             long = rows[i][3];
             lat = rows[i][4];
             sent = rows[i][5];
 
+            color_index = Math.floor(colors.length/2);
+            if(sent < 0)
+                color_index = colors.length + Math.ceil(sent * colors.length);
+            else if(sent > 0)
+                color_index = Math.floor(sent * colors.length);
             
-            L.marker([lat, long]).addTo(map)
-                .bindPopup("Sentiment: " + sent);
+            tweet_color = colors[color_index]; 
 
-            console.log(long + " " + lat + " " + sent);
+            var circle = L.circle([lat, long], {
+                color: tweet_color,
+                fillColor: tweet_color,
+                fillOpacity: 0.5,
+                radius: 1000
+            }).addTo(map)
+            .bindPopup("<b>Sentiment: </b>" + sent + "<br>\"" + text + "\"");
+            
+            //L.marker([lat, long]).addTo(map)
+            //    .bindPopup("Sentiment: " + sent);
         }
     
     </script>
