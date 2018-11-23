@@ -142,9 +142,21 @@ class SqlSearcher():
     def search(self, query):
         # tweet_mode = "extended" returns the full tweet even if it's > 140 characters
         # lang="en" restricts to only english tweets
-        for status in tweepy.Cursor(self.api.search, q=query, tweet_mode="extended", lang="en").items():
-            self.sqlLoader.store_sql(status)
-
+        #for status in tweepy.Cursor(self.api.search, q=query, tweet_mode="extended", lang="en").items():
+        #    self.sqlLoader.store_sql(status)
+        
+        # https://stackoverflow.com/questions/21308762/avoid-twitter-api-limitation-with-tweepy
+        c = tweepy.Cursor(self.api.search, q=query, tweet_mode="extended", lang="en").items()
+        while True:
+            try:
+                tweet = c.next()
+                self.sqlLoader.store_sql(tweet)
+                # Insert into db
+            except tweepy.TweepError:
+                time.sleep(60 * 15)
+                continue
+            except StopIteration:
+                break
 
 def main():
 
@@ -160,7 +172,6 @@ def main():
     sqlSearcher = SqlSearcher("trump", api)
     # queries can be formed as boolean queries "trump OR president OR food"
     sqlSearcher.search("trump")
-        
 
 if __name__ == "__main__":
     main()
