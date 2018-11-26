@@ -21,6 +21,12 @@ app.get('/', function(req, res){
     });
 });
 
+app.get('/heatmap', function(req, res){
+    res.render('heatmapindex.ejs', {
+        rows: data
+    });
+});
+
 // Static Files
 app.use(express.static(__dirname+"/public"));
 
