@@ -158,6 +158,27 @@ class SqlSearcher():
             except StopIteration:
                 break
 
+    def throughput_test(self, query, geoflag):
+        count = 0
+        c = tweepy.Cursor(self.api.search, q=query, tweet_mode="extended", lang="en").items()
+        t_end = time.time() + 60
+        t_start = time.time()
+        print("Start Time: " + str(t_start))
+        while time.time() < t_end:
+            try:
+                tweet = c.next()
+                if(geoflag):
+                    if(tweet.place == None and tweet.coordinates == None):
+                        continue
+                text = tweet.full_text if hasattr(tweet, 'full_text') else tweet.text
+                self.sqlLoader.get_sentiment(text)
+                count+=1
+            except tweepy.TweepError:
+                break
+        print("Final Count: " + str(count) + " Final Time: " + str(time.time() - t_start)) 
+
+
+
 def main():
 
     auth = tweepy.OAuthHandler(keys.CONSUMER_KEY, keys.CONSUMER_SECRET)
@@ -172,6 +193,9 @@ def main():
     sqlSearcher = SqlSearcher("trump", api)
     # queries can be formed as boolean queries "trump OR president OR food"
     sqlSearcher.search("trump")
+
+    #sqlTester = SqlSearcher("test", api)
+    #sqlTester.throughput_test("trump", True)
 
 if __name__ == "__main__":
     main()
