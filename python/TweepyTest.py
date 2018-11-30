@@ -45,6 +45,7 @@ class SqlLoader():
         self.cursor = self.db.cursor()
         self.tablename = tablename
         self.create_table()
+        self.count = 0
 
     # Creates a new table in the tweetDB if the table does not already exist
     def create_table(self):
@@ -57,13 +58,9 @@ class SqlLoader():
     # Stores a tweet in a SQLite table
     def store_sql(self, status):
         if(status.place != None or status.coordinates != None):
+            self.count += 1
             # Have to parse lat/long out of coordiantes, since SQLite can't handle the JSON style coordinates
             longitude, latitude = self.get_coordinates(status)
-            #text = ""
-            #if hasattr(status, 'full_text'):
-            #    text = status.full_text
-            #else:
-            #    text = status.text
             text = status.full_text if hasattr(status, 'full_text') else status.text
             date = status.created_at
             sentiment = self.get_sentiment(text)
@@ -142,9 +139,6 @@ class SqlSearcher():
     def search(self, query):
         # tweet_mode = "extended" returns the full tweet even if it's > 140 characters
         # lang="en" restricts to only english tweets
-        #for status in tweepy.Cursor(self.api.search, q=query, tweet_mode="extended", lang="en").items():
-        #    self.sqlLoader.store_sql(status)
-        
         # https://stackoverflow.com/questions/21308762/avoid-twitter-api-limitation-with-tweepy
         c = tweepy.Cursor(self.api.search, q=query, tweet_mode="extended", lang="en").items()
         while True:
@@ -153,6 +147,8 @@ class SqlSearcher():
                 self.sqlLoader.store_sql(tweet)
                 # Insert into db
             except tweepy.TweepError:
+                print(self.sqlLoader.count)
+                self.sqlLoader.count = 0
                 time.sleep(60 * 15)
                 continue
             except StopIteration:
