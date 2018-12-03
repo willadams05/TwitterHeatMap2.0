@@ -27,6 +27,13 @@ app.get('/heatmap', function(req, res){
     });
 });
 
+app.get('/hybridHeatmap', function(req, res){
+    res.render('hybridHeatmap.ejs', {
+        rows: data
+    });
+});
+
+
 // Static Files
 app.use(express.static(__dirname+"/public"));
 

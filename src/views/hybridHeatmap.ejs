@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Nodejs Leaflet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="/css/main.css"/>
+</head>
+<body>
+
+    <div id="map-template"></div>
+
+    <script src="heatmap.js"></script>
+    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
+    <script src="leaflet-heatmap.js"></script>
+    
+    <script>
+
+        var cfg = {
+          // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+          // if scaleRadius is false it will be the constant radius used in pixels
+          "radius": .75,
+          "maxOpacity": .5, //default == .8
+          //TODO: change value? default == 0
+          "minOpacity": .3,
+          // scales the radius based on map zoom
+          "scaleRadius": true, 
+          // if set to false the heatmap uses the global maximum for colorization
+          // if activated: uses the data maximum within the current map boundaries 
+          //   (there will always be a red spot with useLocalExtremas true)
+          "useLocalExtrema": true,
+          "blur": 1,
+          // which field name in your data represents the latitude - default "lat"
+          latField: 'lat',
+          // which field name in your data represents the longitude - default "lng"
+          lngField: 'lng',
+          // which field name in your data represents the data value - default "value"
+          valueField: 'sent',
+          defaultGraident: { 0.35: "rgb(255,0,0)", 0.65: "rgb(255,0,0)", 0.9: "rgb(255,0,0)", 1.0: "rgb(255,0,0)"}//{ 0.35: "rgb(255,0,0)", 0.65: "rgb(255,150,0)", 0.9: "rgb(255,255,0)", 1.0: "rgb(0,255,0)"}
+        };
+
+        var heatmapLayer = new HeatmapOverlay(cfg);
+        // console.log(typeof heatmapLayer);
+        // console.log(typeof heatmapLayer.this);
+        // console.log(typeof heatmapLayer.super);
+        // console.log(typeof heatmapLayer.h337);
+        // heatmapLayer.h337.updateConfig({'gradient':{ 0.35: "rgb(255,0,0)", 0.65: "rgb(255,150,0)", 0.9: "rgb(255,255,0)", 1.0: "rgb(0,255,0)"}});
+        // heatmapLayer.super.updateConfig({'gradient':{ 0.35: "rgb(255,0,0)", 0.65: "rgb(255,150,0)", 0.9: "rgb(255,255,0)", 1.0: "rgb(0,255,0)"}});
+        // const map = L.map('map-template').setView([30.2672, -97.7431], 5);
+
+        var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });//.addTo(map);
+
+        var map = new L.Map('map-template', {
+          center: new L.LatLng(30.2672, -97.7431),
+          zoom: 5,
+          layers: [baseLayer, heatmapLayer]
+        });
+
+        var rows = <%- JSON.stringify(rows) %>;
+       
+        // Colors from red to green with worst sentiment at colors[0] and best at colors[length-1];
+        var colors = ["#FF0000", "#FF3200", "#FF6400", "#FF9600", "#FFC800", "#FFFF00", "#C8FF00", 
+                      "#96FF00", "#64FF00", "#32FF00", "#00FF00"];  
+
+
+        var length = rows.length;
+        console.log(length);
+        var array = new Array();
+        for (var i = 0; i < length; i++){
+            text = rows[i][1];
+            date = rows[i][2];
+            long = rows[i][3];
+            lat = rows[i][4];
+            sent = rows[i][5];
+
+            // heatmapLayer.addData({lat,long,sent});
+            var normalizedSent = (sent+1)/2;//Math.abs(((sent+1)/2)-1);
+            // array.push(L.latLng(lat,long,normalizedSent));
+            array.push({lat:lat, lng:long, sent:normalizedSent});
+
+            //markers
+            mid = Math.floor(colors.length/2);
+            color_index = mid;
+            if(sent < 0)
+                color_index = mid + Math.ceil(sent * mid);
+            else if(sent > 0)
+                color_index = mid + Math.floor(sent * mid);
+            
+            tweet_color = colors[color_index]; 
+            tweet_color = "#808080";
+
+            var circle = L.circle([lat, long], {
+                color: tweet_color,
+                fillColor: tweet_color,
+                fillOpacity: 0.5,
+                radius: 1000
+            }).addTo(map)
+            .bindPopup("<b>Sentiment: </b>" + sent + "<br>\"" + text + "\"");
+            
+        }
+
+        // console.log(JSON.stringify(array,null,4));
+        // console.log(array.length);
+        heatmapLayer.addData(array);
+        // console.log(heatmapLayer);
+        L.control.layers(baseLayer,heatmapLayer).addTo(map);
+
+    </script>
+</body>
+</html>
