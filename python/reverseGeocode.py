@@ -157,8 +157,4 @@ for key in sentMap:
     if(countMap[key] == 0):
         continue
     sentMap[key] = sentMap[key] / countMap[key]
-    print("State: " + key + " Sentiment: " + str(sentMap[key]))
-
-
-        
-
+    print("State: " + key + " # Tweets: " + str(countMap[key]) + " Sentiment: " + str(sentMap[key]))

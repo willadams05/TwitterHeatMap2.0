@@ -124,7 +124,6 @@ class JsonStreamListener(tweepy.StreamListener):
     
     def on_status(self, status):
         self.jsonLoader.store_json(status)
-    
     def on_error(self, status_code):
         print(status_code)
         return False
@@ -137,6 +136,7 @@ class SqlSearcher():
         self.sqlLoader = SqlLoader(tablename)
 
     def search(self, query):
+        old_count = 0
         # tweet_mode = "extended" returns the full tweet even if it's > 140 characters
         # lang="en" restricts to only english tweets
         # https://stackoverflow.com/questions/21308762/avoid-twitter-api-limitation-with-tweepy
@@ -145,11 +145,12 @@ class SqlSearcher():
             try:
                 tweet = c.next()
                 self.sqlLoader.store_sql(tweet)
+                if old_count != self.sqlLoader.count:
+                    old_count = self.sqlLoader.count
+                    print("Count: " + str(self.sqlLoader.count))
                 # Insert into db
             except tweepy.TweepError:
-                print(self.sqlLoader.count)
-                self.sqlLoader.count = 0
-                time.sleep(60 * 15)
+                time.sleep(60 * 5)
                 continue
             except StopIteration:
                 break
@@ -171,7 +172,7 @@ class SqlSearcher():
                 count+=1
             except tweepy.TweepError:
                 break
-        print("Final Count: " + str(count) + " Final Time: " + str(time.time() - t_start)) 
+        print("Final Count: " + str(count) + " Final Time: " + str(time.time() - t_start))
 
 
 
